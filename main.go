@@ -9,17 +9,48 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-type Star struct {
-	x,y,z float32
-	radius float32
+var speed float64 = 3
+
+func Map(value, start1, stop1, start2, stop2 float64) float64 {
+    return start2 + (value-start1)*(stop2-start2)/(stop1-start1)
 }
 
-func (c *Star) Update() {
+type Star struct {
+	x, sx, y, sy,z, pz float64
+	radius float64
+}
 
+func NewStar() *Star{
+	x := float64(randRange(-width/2, width/2))
+	y := float64(randRange(-height/2, height/2))
+	z := float64(randRange(0, width))
+	sx := Map(x / z, 0, 1, 0, width) / 2
+	sy := Map(y / z, 0, 1, 0, height) / 2
+	radius :=  Map(z, 0, width, 16, 0)
+
+	return &Star{
+		x: x, sx: sx, y: y, sy: sy, z:z, radius: radius, pz: z,
+	}
+}
+
+func (s *Star) Update() {
+	s.sx = Map(s.x / s.z, 0, 1, 0, width) / 2
+	s.sy = Map(s.y / s.z, 0, 1, 0, height) / 2
+	s.z =  s.z - speed
+	s.radius = Map(s.z, 0, width, 8, 0)
+
+	if s.z < 1 {
+		s.z = width
+		s.sx = Map(s.x / s.z, 0, 1, 0, width) / 2
+		s.sy = Map(s.y / s.z, 0, 1, 0, height) / 2
+		s.radius = Map(s.z, 0, width, 16, 0)
+	}
 }
 
 func (s *Star) Show(screen *ebiten.Image) {
-	vector.DrawFilledCircle(screen, s.x, s.y, s.radius, color.White, true)
+	vector.DrawFilledCircle(
+		screen, float32(s.sx + width/2), float32(s.sy + height/2), float32(s.radius), color.White, true,
+	)
 }
 
 const (
@@ -31,9 +62,13 @@ type Window struct{
 	stars []*Star
 }
 
+func randRange(min, max int) int {
+    return rand.Intn(max-min) + min
+}
+
 func (w *Window) Update() error {
-	for _, circle := range w.stars {
-        circle.Update()
+	for _, star := range w.stars {
+        star.Update()
     }
 	return nil
 }
@@ -51,15 +86,12 @@ func (w *Window) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 
 func main() {
 	ebiten.SetWindowSize(width, height)
-	ebiten.SetWindowTitle("Stars")
+	ebiten.SetWindowTitle("Sternenfeld")
 
 	stars := []*Star{}
 
 	for i := 0; i < 100; i++ {
-		x := float32(rand.Intn(width))
-        y := float32(rand.Intn(height))
-		star := Star{x: float32(x), y: float32(y), radius: 4}
-		stars = append(stars, &star)
+		stars = append(stars, NewStar())
 	}
 
 	if err := ebiten.RunGame(&Window{stars: stars}); err != nil {
