@@ -37,13 +37,13 @@ func (s *Star) Update() {
 	s.sx = Map(s.x / s.z, 0, 1, 0, width) / 2
 	s.sy = Map(s.y / s.z, 0, 1, 0, height) / 2
 	s.z =  s.z - speed
-	s.radius = Map(s.z, 0, width, 8, 0)
+	s.radius = Map(s.z, 0, width, 2, 0)
 
 	if s.z < 1 {
 		s.z = width
 		s.sx = Map(s.x / s.z, 0, 1, 0, width) / 2
 		s.sy = Map(s.y / s.z, 0, 1, 0, height) / 2
-		s.radius = Map(s.z, 0, width, 16, 0)
+		s.radius = Map(s.z, 0, width, 2, 0)
 	}
 }
 
@@ -90,7 +90,7 @@ func main() {
 
 	stars := []*Star{}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		stars = append(stars, NewStar())
 	}
 
